@@ -55,22 +55,22 @@ This is the schema of the Database in DB Broswer application.
 ### 2. Set Up a Virtual Environment & Install Dependencies
 Create a virtual environment
 
-    `python -m venv venv`
+    python -m venv venv
 
 Activate virtual environment
 
-On Windows:
+`On Windows:`
 
-   `venv\Scripts\activate`
+    venv\Scripts\activate
 
-On macOS/Linux:
+`On macOS/Linux:`
 
-   `source venv/bin/activate`
+    source venv/bin/activate
 
 Install required dependencies
 
-    `pip install fastapi uvicorn sqlalchemy pydantic`
+    pip install fastapi uvicorn sqlalchemy pydantic
 
 ### 3. Run the API Server
 
-    `uvicorn main:app --reload`
+    uvicorn main:app --reload
