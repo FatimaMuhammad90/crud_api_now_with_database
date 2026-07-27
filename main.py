@@ -84,6 +84,7 @@ def search_with_words(search: str, db: Session = Depends(get_db)):
 
 @app.post("/tasks", status_code=201)
 def create(task: TaskCreate, db: Session = Depends(get_db)):
+
     new_task = Task(title=task.title, done=False) # passing the parameters to the task class
     db.add(new_task)
     db.commit()
