@@ -2,6 +2,10 @@
 from fastapi import FastAPI, HTTPException 
 from pydantic import BaseModel, Field
 from typing import Optional
+from sqlalchemy import create_engine, Column, Integer, String, Boolean
+from sqlalchemy.ext.declarative import declarative_base # what is this for?
+from sqlalchemy.orm import sessionmaker, Session
+
 
 class TaskCreate(BaseModel):
   title: str = Field(..., min_length=1)
@@ -12,6 +16,26 @@ class TaskUpdate(BaseModel):
 
 app = FastAPI()
 
+engine = create_engine("sqlite://tasks.db", connect_args={"check_same_thread":False})
+sessionlocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+class Task(Base):
+    _tablename__="tasks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(100), nullable=False)
+    done = Column(Boolean, nullable=False)
+# nullable means it cannot be empty
+
+Base.metadata.create_all(engine)
+
+
+
+
+
+
+ 
 tasks = {}
 count = 0
 @app.get("/")
