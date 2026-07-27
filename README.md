@@ -40,26 +40,27 @@ This is the schema of the Database in DB Broswer application.
 
 ## How to Run the Project
 
-1. Clone the Repository
+### 1. Clone the Repository
 
-    `git clone <[text](https://github.com/FatimaMuhammad90/crud_api_now_with_database)>
+    `git clone https://github.com/FatimaMuhammad90/crud_api_now_with_database`
    
-    cd <Task2(week3)>`
+    `cd Task2(week3)`
 
 
-2. Set Up a Virtual Environment & Install Dependencies
-    # Create a virtual environment
+### 2. Set Up a Virtual Environment & Install Dependencies
+Create a virtual environment
    ` python -m venv venv`
 
-    # Activate virtual environment
-    # On Windows:
+Activate virtual environment
+On Windows:
    ` venv\Scripts\activate`
-    # On macOS/Linux:
+   
+On macOS/Linux:
    ` source venv/bin/activate`
 
-    # Install required dependencies
-    `pip install fastapi uvicorn sqlalchemy pydantic
-`
-3. Run the API Server
+Install required dependencies
+    `pip install fastapi uvicorn sqlalchemy pydantic`
+
+### 3. Run the API Server
 
     `uvicorn main:app --reload`
