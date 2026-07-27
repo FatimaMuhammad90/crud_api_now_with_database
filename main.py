@@ -5,7 +5,7 @@ from typing import Optional
 from sqlalchemy import create_engine, Column, Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base 
 from sqlalchemy.orm import sessionmaker, Session
-
+import os
 
 class TaskCreate(BaseModel):
   title: str = Field(..., min_length=1)
@@ -32,14 +32,34 @@ class Task(Base):
 Base.metadata.create_all(engine)
 #this creates the engine
 
+def init_db():
+    if not os.path.exists("tasks.db"):
+        Base.metadata.create_all(bind=engine)
+
+    db = sessionlocal()
+    try:
+        task_count = db.query(Task).count()
+        if task_count == 0:
+            example_tasks = [
+                Task(title="Buy groceries", done=False),
+                Task(title="Clean the house", done=True),
+                Task(title="Finish the project", done=False),
+            ]
+            for task in example_tasks:
+                db.add(task)
+            db.commit()
+    finally:
+        db.close()
+
 def get_db():
+    
     db = sessionlocal()
     try:
         yield db
     finally:
         db.close()
 
-get_db()
+init_db()
 
 
 @app.get("/")
@@ -84,7 +104,7 @@ def update(id: int, task: TaskUpdate, db: Session = Depends(get_db)):
     db_task = db.query(Task).filter(Task.id == id).first()
     if not db_task:
         raise HTTPException(status_code=404, detail="Task does not exist")
-    for field, value  in task.dict().items():
+    for field, value  in task.dict(exclude_unset=True).items():
         setattr(db_task, field, value)
 
     db.commit()
