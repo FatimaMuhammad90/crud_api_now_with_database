@@ -89,12 +89,14 @@ def update(id: int, task: TaskUpdate, db: Session = Depends(get_db)):
     return db_task
 
 
-# @app.delete("/tasks/{id}", status_code=204)
-# def delete(id: int):
-#     if id not in tasks:
-#          raise HTTPException(status_code=404, detail="Task not found")
-#     del tasks[id]
-#     return {}
+@app.delete("/tasks/{id}", status_code=204)
+def delete(id: int, db: Session = Depends(get_db)):
+    db_task = db.query(Task).filter(Task.id == id).first()
+    if not db_task:
+        raise HTTPException(status_code=404, detail="Task does not exist")
+    db.delete(db_task)
+    db.commit()
+    return {}
 
 # @app.get("/stats")
 # def stats():
