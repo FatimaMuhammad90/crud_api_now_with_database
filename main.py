@@ -59,8 +59,6 @@ def read(db: Session = Depends(get_db)):
     return db.query(Task).all()
 
 
-
-
 @app.post("/tasks", status_code=201)
 def create(task: TaskCreate, db: Session = Depends(get_db)):
     new_task = Task(title=task.title, done=False) # passing the parameters to the task class
@@ -78,18 +76,17 @@ def search_with_id(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Task not found")
     return task
 
-# @app.put("/tasks/{id}")
+@app.put("/tasks/{id}")
+def update(id: int, task: TaskUpdate, db: Session = Depends(get_db)):
+    db_task = db.query(Task).filter(Task.id == id).first()
+    if not db_task:
+        raise HTTPException(status_code=404, detail="Task does not exist")
+    for field, value  in task.dict().items():
+        setattr(db_task, field, value)
 
-# def update(id: int, task: TaskUpdate):
-#     if id not in tasks:
-#          raise HTTPException(status_code=404, detail="Task not found")
-#     if task.title is None and task.done is None:
-#         raise HTTPException(status_code=400, detail="No fields to update")
-#     if task.title is not None:
-#         tasks[id]["title"] = task.title
-#     if task.done is not None:
-#         tasks[id]["done"] = task.done
-#     return {"message": f"Updated task with ID {id}."}
+    db.commit()
+    db.refresh(db_task)
+    return db_task
 
 
 # @app.delete("/tasks/{id}", status_code=204)
