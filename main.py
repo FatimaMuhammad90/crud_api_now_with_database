@@ -1,5 +1,5 @@
 
-from fastapi import FastAPI, HTTPException 
+from fastapi import Depends, FastAPI, HTTPException 
 from pydantic import BaseModel, Field
 from typing import Optional
 from sqlalchemy import create_engine, Column, Integer, String, Boolean
@@ -42,11 +42,6 @@ def get_db():
 get_db()
 
 
-
-
- 
-tasks = {}
-count = 0
 @app.get("/")
 def root():
     return {
@@ -60,63 +55,65 @@ def health():
     return {"status": "OK"}
 
 @app.get("/tasks")
-def read():
-    return tasks
+def read(db: Session = Depends(get_db)):
+    return db.query(Task).all()
 
-@app.get("/stats")
-def stats():
-    total_count = len(tasks)
-    completed_count = sum(1 for task in tasks.values() if task.get("done"))
-    non_completed_count = total_count - completed_count
-    return {
-        "total_count": total_count,
-        "completed_count": completed_count,
-        "non_completed_count": non_completed_count,
-    }
+
 
 
 @app.post("/tasks", status_code=201)
-def create(task: TaskCreate):
-    global count
-    count += 1
-    id = count
-    title = task.title
-    if id in tasks:
-        raise HTTPException(status_code=409, detail="Task exists")
-    tasks[id] = {"title": title, "done": False}
-    return {"message": f"Added {title} to tasks."}
+def create(task: TaskCreate, db: Session = Depends(get_db)):
+    new_task = Task(title=task.title, done=False) # passing the parameters to the task class
+    db.add(new_task)
+    db.commit()
+    db.refresh(new_task)
+    return new_task
 
-@app.get("/tasks/search")
-def search_with_words(search : str):
-    result = {}
-    for id, task in tasks.items():
-        if search.lower() in task["title"].lower():
-            result[id] = task
-    return result
+
 
 @app.get("/tasks/{id}")
-def search_with_id(id: int):
-    if id not in tasks:
-         raise HTTPException(status_code=404, detail="Task not found")
-    return tasks[id]
+def search_with_id(id: int, db: Session = Depends(get_db)):
+    task = db.query(Task).filter(Task.id == id).first()
+    if task is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return task
 
-@app.put("/tasks/{id}")
-def update(id: int, task: TaskUpdate):
-    if id not in tasks:
-         raise HTTPException(status_code=404, detail="Task not found")
-    if task.title is None and task.done is None:
-        raise HTTPException(status_code=400, detail="No fields to update")
-    if task.title is not None:
-        tasks[id]["title"] = task.title
-    if task.done is not None:
-        tasks[id]["done"] = task.done
-    return {"message": f"Updated task with ID {id}."}
+# @app.put("/tasks/{id}")
+
+# def update(id: int, task: TaskUpdate):
+#     if id not in tasks:
+#          raise HTTPException(status_code=404, detail="Task not found")
+#     if task.title is None and task.done is None:
+#         raise HTTPException(status_code=400, detail="No fields to update")
+#     if task.title is not None:
+#         tasks[id]["title"] = task.title
+#     if task.done is not None:
+#         tasks[id]["done"] = task.done
+#     return {"message": f"Updated task with ID {id}."}
 
 
-@app.delete("/tasks/{id}", status_code=204)
-def delete(id: int):
-    if id not in tasks:
-         raise HTTPException(status_code=404, detail="Task not found")
-    del tasks[id]
-    return {}
+# @app.delete("/tasks/{id}", status_code=204)
+# def delete(id: int):
+#     if id not in tasks:
+#          raise HTTPException(status_code=404, detail="Task not found")
+#     del tasks[id]
+#     return {}
 
+# @app.get("/stats")
+# def stats():
+#     total_count = len(tasks)
+#     completed_count = sum(1 for task in tasks.values() if task.get("done"))
+#     non_completed_count = total_count - completed_count
+#     return {
+#         "total_count": total_count,
+#         "completed_count": completed_count,
+#         "non_completed_count": non_completed_count,
+#     }
+
+# @app.get("/tasks/search")
+# def search_with_words(search : str):
+#     result = {}
+#     for id, task in tasks.items():
+#         if search.lower() in task["title"].lower():
+#             result[id] = task
+#     return result
