@@ -45,9 +45,7 @@ get_db()
 @app.get("/")
 def root():
     return {
-        "name": "Task API",
-        "version": "1.0",
-        "endpoints": ["/tasks"] 
+        "name": "Task API"
     }
 
 @app.get("/health")
@@ -58,6 +56,11 @@ def health():
 def read(db: Session = Depends(get_db)):
     return db.query(Task).all()
 
+# i was getting error her as 422: unprocessable content because fastapi checks endpoints from top to bottom and when it hit /tasks/{id} first, it tried to work with that, getting wrong result, so always put this on top of that endpoint
+@app.get("/tasks/search")
+def search_with_words(search: str, db: Session = Depends(get_db)):
+    result = db.query(Task).filter(Task.title.ilike(f"%{search}%")).all()
+    return result
 
 @app.post("/tasks", status_code=201)
 def create(task: TaskCreate, db: Session = Depends(get_db)):
@@ -98,6 +101,10 @@ def delete(id: int, db: Session = Depends(get_db)):
     db.commit()
     return {}
 
+
+
+
+# we can use the simples contains() too, but the assignment specified 
 # @app.get("/stats")
 # def stats():
 #     total_count = len(tasks)
@@ -109,10 +116,3 @@ def delete(id: int, db: Session = Depends(get_db)):
 #         "non_completed_count": non_completed_count,
 #     }
 
-# @app.get("/tasks/search")
-# def search_with_words(search : str):
-#     result = {}
-#     for id, task in tasks.items():
-#         if search.lower() in task["title"].lower():
-#             result[id] = task
-#     return result
