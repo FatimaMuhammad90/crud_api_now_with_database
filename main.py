@@ -3,7 +3,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from typing import Optional
 from sqlalchemy import create_engine, Column, Integer, String, Boolean
-from sqlalchemy.ext.declarative import declarative_base # what is this for?
+from sqlalchemy.ext.declarative import declarative_base 
 from sqlalchemy.orm import sessionmaker, Session
 
 
@@ -16,12 +16,13 @@ class TaskUpdate(BaseModel):
 
 app = FastAPI()
 
-engine = create_engine("sqlite://tasks.db", connect_args={"check_same_thread":False})
+engine = create_engine("sqlite:///tasks.db", connect_args={"check_same_thread":False})
 sessionlocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 class Task(Base):
-    _tablename__="tasks"
+    __tablename__ = "tasks"
+    # it was supposed to have two underroots on both sides
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(100), nullable=False)
@@ -29,8 +30,16 @@ class Task(Base):
 # nullable means it cannot be empty
 
 Base.metadata.create_all(engine)
+#this creates the engine
 
+def get_db():
+    db = sessionlocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
+get_db()
 
 
 
