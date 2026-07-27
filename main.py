@@ -101,18 +101,16 @@ def delete(id: int, db: Session = Depends(get_db)):
     db.commit()
     return {}
 
-
-
-
-# we can use the simples contains() too, but the assignment specified 
-# @app.get("/stats")
-# def stats():
-#     total_count = len(tasks)
-#     completed_count = sum(1 for task in tasks.values() if task.get("done"))
-#     non_completed_count = total_count - completed_count
-#     return {
-#         "total_count": total_count,
-#         "completed_count": completed_count,
-#         "non_completed_count": non_completed_count,
-#     }
+# used where() to find the completed tasks and stats too
+@app.get("/stats")
+def stats(db: Session = Depends(get_db)):
+    total_count = db.query(Task).count()
+    print(total_count)
+    completed_count = db.query(Task).where(Task.done == True).count()
+    non_completed_count = total_count - completed_count
+    return {
+        "total_count": total_count,
+        "completed_count": completed_count,
+        "non_completed_count": non_completed_count,
+    }
 
